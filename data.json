@@ -1,0 +1,31 @@
+{
+	"todos": [{
+		"id": 1,
+		"text": "learn scala.js",
+		"complete": false
+	}, {
+		"id": 2,
+		"text": "learn redux",
+		"complete": true
+	}, {
+		"id": 3,
+		"text": "learn maven",
+		"complete": true
+	}, {
+		"id": 4,
+		"text": "learn jenkins",
+		"complete": true
+	}, {
+		"id": 5,
+		"text": "learn spring boot",
+		"complete": false
+	}, {
+		"id": 6,
+		"text": "learn shapeless",
+		"complete": false
+	}, {
+		"id": 7,
+		"text": "learn akka",
+		"complete": false
+	}]
+}
