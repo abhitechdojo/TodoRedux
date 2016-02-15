@@ -25,8 +25,7 @@ export function addLocalTodo(id, text) {
 export function addTodo(nextId, text) {
     return (dispatch) => {
         var fireBaseRef = new Firebase("https://todoredux1.firebaseio.com/todos");
-        var newObjRef = fireBaseRef.push();
-        newObjRef.set({'id': nextId, 'text': text, 'complete': false});
+        fireBaseRef.child(nextId).set({'id': nextId, 'text': text, 'complete': false});
         return dispatch(addLocalTodo(nextId, text));
     }
 }
