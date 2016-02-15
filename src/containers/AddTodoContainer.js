@@ -5,11 +5,12 @@ import {addTodo} from '../actions/TodoListActions';
 
 const mapStateToProps = (state) => {
 	return {
+		nextId: state.nextId
 	}
 }
 const mapDispatchToProps = (dispatch) => {
 	return {
-		onAdd: (text) => {dispatch(addTodo(text))} 
+		onAdd: (nextId, text) => {dispatch(addTodo(nextId, text))} 
 	}
 }
 

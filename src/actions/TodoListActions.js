@@ -1,3 +1,5 @@
+import Firebase from 'firebase';
+
 export const ADD_TODO = "ADD_TODO";
 export const TOGGLE_TODO = "TOGGLE_TODO";
 export const FILTER_TODO = "FILTER_TODO";
@@ -11,21 +13,22 @@ export const visibilityFilters = {
     SHOW_COMPLETE: 'SHOW_COMPLETE'
 }
 
-let nextId = 0;
-
-export function addTodo(text) {
+export function addLocalTodo(id, text) {
 	return {
 		type: ADD_TODO,
 		text,
-		id: nextId++
+		id: id,
+        nextId: ++id
 	}
 }
 
-export function toggleTodo(index) {
-	return {
-		type: TOGGLE_TODO,
-		index
-	}
+export function addTodo(nextId, text) {
+    return (dispatch) => {
+        var fireBaseRef = new Firebase("https://todoredux1.firebaseio.com/todos");
+        var newObjRef = fireBaseRef.push();
+        newObjRef.set({'id': nextId, 'text': text, 'complete': false});
+        return dispatch(addLocalTodo(nextId, text));
+    }
 }
 
 export function setVisibilityFilter(filter) {
@@ -43,10 +46,19 @@ export function requestTodos() {
 }
 
 export function receiveTodosSuccess(todos) {
+    console.log(todos);
+    var maxId = todos.reduce(function(p, c, i, a) { 
+        if (p.id >= c.id) {
+            return p.id
+        } else {
+            return c.id
+        }
+    });    
 	return {
 		type: RECEIVE_TODO_SUCCESS,
 		todos,
-		isLoading: false
+		isLoading: false,
+        nextId: ++maxId
 	}
 }
 
@@ -58,17 +70,39 @@ export function receiveTodosFailure(errorText) {
 	}
 }
 
+export function toggleLocalTodo(id) {
+    return {
+        type: TOGGLE_TODO,
+        id
+    }
+}
+
+export function toggleTodo(id) {
+    return (dispatch) => {
+        var onComplete = function(error) {
+          if (error) {
+            console.log('Synchronization failed ' + error);
+          }
+        };        
+        var fireBaseRef = new Firebase("https://todoredux1.firebaseio.com/todos");
+        fireBaseRef.orderByChild("id").equalTo(id).once('child_added', function(todoRef){
+            const key = todoRef.key();
+            const todo = todoRef.val();
+            fireBaseRef.child(key).update(Object.assign({}, todo, {complete: !todo.complete}), onComplete);
+        });
+        return dispatch(toggleLocalTodo(id));
+    }
+}
+
 export function getTodosFromWeb() {
 	return (dispatch) => {
 		// set isLoading to true
 		dispatch(requestTodos());
-		setTimeout(function(){}, 100000);
-		return fetch(`https://todoredux1.firebaseio.com/todos.json`)
-      		.then(response => response.json())
-      		.then(json => {
-		        dispatch(receiveTodosSuccess(json))} // on success
-      		).catch(error =>
-      			dispatch(receiveTodosFailure(error))
-      		)
+        var fireBaseRef = new Firebase("https://todoredux1.firebaseio.com");
+        fireBaseRef.child('todos').once('value', function(todosRef){
+            return dispatch(receiveTodosSuccess(todosRef.val()))
+        }, function(errorText) {
+            return dispatch(receiveTodosFailure(errorText))
+        });
 	}
 }
